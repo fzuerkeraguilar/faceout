@@ -27,5 +27,8 @@ export class Brick extends GameObject {
         context.fillRect(this.position.x - this.width / 2, this.position.y - this.height / 2, this.width, this.height);
     }
     
-
+    public resize(width: number, height: number) {
+        this._height = height;
+        this._width = width;
+    }
 }

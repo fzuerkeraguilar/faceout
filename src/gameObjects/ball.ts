@@ -20,9 +20,24 @@ export class Ball extends GameObject {
     }
 
     public draw(context: CanvasRenderingContext2D): void {
+        const canvasWidth = context.canvas.width;
+        const canvasHeight = context.canvas.height;
+        if (this.position.x + this.radius > canvasWidth) {
+            this.position.x = canvasWidth - this.radius;
+        }
+        if (this.position.x - this.radius < 0) {
+            this.position.x = this.radius;
+        }
+        if (this.position.y + this.radius > canvasHeight) {
+            this.position.y = canvasHeight - this.radius;
+        }
+        if (this.position.y - this.radius < 0) {
+            this.position.y = this.radius;
+        }
+
         context.fillStyle = "white";
         context.beginPath();
-        context.arc(this.position.x, this.position.y, this.radius, 0, Math.PI * 2);
+        context.arc(this.position.x, this.position.y, this.radius, 0, 2 * Math.PI);
         context.fill();
     }
 
