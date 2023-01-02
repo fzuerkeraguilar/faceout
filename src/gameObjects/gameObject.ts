@@ -27,10 +27,6 @@ export abstract class GameObject {
         this.position = this.position.add(this.velocity.scale(deltaTime));
     }
 
-    public collidesWith(other: GameObject): boolean {
-        return false;
-    }
-
     public abstract draw(context: CanvasRenderingContext2D): void;
 
 }

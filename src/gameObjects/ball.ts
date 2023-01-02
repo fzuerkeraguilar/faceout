@@ -1,4 +1,6 @@
+import { Brick } from "./brick";
 import { GameObject } from "./gameObject";
+import { Paddle } from "./paddle";
 import { Vector2 } from "./vector2";
 
 export class Ball extends GameObject {
@@ -46,10 +48,37 @@ export class Ball extends GameObject {
             const distance = this.position.distanceTo(other.position);
             return distance < this.radius + other.radius;
         } else {
-            return this.position.x + this.radius > other.position.x &&
-                this.position.x - this.radius < other.position.x + other.width &&
-                this.position.y + this.radius > other.position.y &&
-                this.position.y - this.radius < other.position.y + other.height;
+            return this.position.x + this.radius > other.position.x - other.width / 2 &&
+                this.position.x - this.radius < other.position.x + other.width / 2 &&
+                this.position.y + this.radius > other.position.y - other.height / 2 &&
+                this.position.y - this.radius < other.position.y + other.height / 2;
+        }
+    }
+
+    public collisonCheck(canvas: HTMLCanvasElement, bricks: Brick[], paddle: Paddle): void {
+        bricks.forEach((brick) => {
+            if(brick.destroyed){
+                return
+            }
+            if (this.collidesWith(brick)) {
+                this.collisionResponse(brick)
+                brick.destroy();
+            }
+        });
+        if (this.collidesWith(paddle)) {
+            this.collisionResponse(paddle);
+        }
+        if (this.position.y + this.radius > canvas.height) {
+            this.velocity.y = -this.velocity.y;
+        }
+        if (this.position.x + this.radius > canvas.width) {
+            this.velocity.x = -this.velocity.x;
+        }
+        if (this.position.x - this.radius < 0) {
+            this.velocity.x = -this.velocity.x;
+        }
+        if (this.position.y - this.radius < 0) {
+            this.velocity.y = -this.velocity.y;
         }
     }
 
@@ -59,19 +88,19 @@ export class Ball extends GameObject {
             return normal.normalize();
         }
         const normal = new Vector2(0, 0);
-        if (this.position.x < other.position.x) {
+        if (this.position.x < other.position.x - other.width / 2) {
             normal.x = -1;
         }
         else if (this.position.x > other.position.x + other.width / 2) {
             normal.x = 1;
         }
-        if (this.position.y < other.position.y) {
+        if (this.position.y < other.position.y - other.height / 2) {
             normal.y = -1;
         }
         else if (this.position.y > other.position.y + other.height / 2) {
             normal.y = 1;
         }
-        return normal;
+        return normal.normalize();
     }
 
     public collisionResponse(other: GameObject): void {
