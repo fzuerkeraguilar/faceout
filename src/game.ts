@@ -14,12 +14,14 @@ await faceapi.loadFaceLandmarkTinyModel(MODEL_URL)
 class Game {
     private constraints = { audio: false, video: true, facingMode: "user" };
     private stopped: boolean = true;
+    private paused: boolean = false;
     private facecam!: MediaStream;
     private video!: HTMLVideoElement;
     private gameCanvas: HTMLCanvasElement
     private gameCTX: CanvasRenderingContext2D;
 
     private startButton: HTMLButtonElement;
+    private pauseButton: HTMLButtonElement;
     private stopButton: HTMLButtonElement;
     private livesText: HTMLParagraphElement;
     private scoreText: HTMLParagraphElement;
@@ -39,6 +41,9 @@ class Game {
     constructor() {
         this.startButton = document.querySelector<HTMLButtonElement>("#start")!;
         this.startButton.onclick = this.start.bind(this);
+
+        this.pauseButton = document.querySelector<HTMLButtonElement>("#pause")!;
+        this.pauseButton.onclick = this.pause.bind(this);
 
         this.stopButton = document.querySelector<HTMLButtonElement>("#stop")!;
         this.stopButton.onclick = this.stop.bind(this);
@@ -92,6 +97,17 @@ class Game {
         window.requestAnimationFrame(this.draw.bind(this));
     }
 
+    pause() {
+        if (this.stopped) {
+            return;
+        }
+        console.log("pausing");
+        this.paused = !this.paused;
+        if (!this.paused) {
+            window.requestAnimationFrame(this.draw.bind(this));
+        }
+    }
+
     stop() {
         if (this.stopped) {
             return;
@@ -101,6 +117,22 @@ class Game {
         this.lastFrameTime = 0;
         this.gameCTX.clearRect(0, 0, this.gameCanvas.width, this.gameCanvas.height);
         this.stopped = true;
+        this.paused = false;
+        this.score = 0;
+        this.lives = 3;
+        this.scoreText.innerText = "Score: " + this.score;
+        this.livesText.innerText = "Lives: " + this.lives;
+
+        this.Ball = new Ball(Vector2.zero(), 25);
+        this.Paddle = new Paddle(Vector2.zero(), 120, 40);
+        this.Bricks = this.fieldBuilder.getRectGameField(
+            new Vector2(0, 0),
+            this.gameCanvas.width - 20,
+            this.gameCanvas.height / 4,
+            this.wallWidth,
+            this.wallHeight,
+            10
+        );
     }
 
     draw(timestamp: DOMHighResTimeStamp) {
@@ -126,7 +158,7 @@ class Game {
             return result;
         }).catch((err) => {console.log(err)})
 
-        if (this.faceDetected > 2) {
+        if (this.faceDetected > 2 && !this.paused) {
             this.Ball.update(deltaTime)
             this.score += this.Ball.collisonCheck(this.gameCanvas, this.Bricks, this.Paddle);
         }
