@@ -9,10 +9,10 @@ export class gameFieldBuilder {
         }
     }
 
-    public getRectGameField(topLeft:Vector2, wallWidth: number, wallHeigth: number, widthNum: number, heightNum:number, gap:number): Brick[] {
+    public getRectGameField(topLeft:Vector2, wallWidth: number, wallHeight: number, widthNum: number, heightNum:number, gap:number): Brick[] {
         let bricks: Brick[] = [];
         let brickWidth = wallWidth / widthNum;
-        let brickHeight = wallHeigth / heightNum;
+        let brickHeight = wallHeight / heightNum;
         let colorIndex = 0;
         for (let i = 0; i < widthNum; i++) {
             for (let j = 0; j < heightNum; j++) {

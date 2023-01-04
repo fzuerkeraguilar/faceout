@@ -38,7 +38,6 @@ class Game {
     private fieldBuilder = new gameFieldBuilder([]);
     private Bricks: Brick[] = [];
     private deathHeight: number = 0;
-    private countdownText: String = "";
 
     constructor() {
         this.startButton = document.querySelector<HTMLButtonElement>("#start")!;
@@ -174,7 +173,7 @@ class Game {
                 window.alert("Game Over");
                 return;
             }
-            this.score += this.Ball.collisonCheck(this.gameCanvas, this.Bricks, this.Paddle);
+            this.score += this.Ball.collisionCheck(this.gameCanvas, this.Bricks, this.Paddle);
         }
 
         this.gameCTX.clearRect(0, 0, this.gameCanvas.width, this.gameCanvas.height);

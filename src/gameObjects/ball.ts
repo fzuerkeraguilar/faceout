@@ -55,7 +55,7 @@ export class Ball extends GameObject {
         }
     }
 
-    public collisonCheck(canvas: HTMLCanvasElement, bricks: Brick[], paddle: Paddle): number {
+    public collisionCheck(canvas: HTMLCanvasElement, bricks: Brick[], paddle: Paddle): number {
         let destroyed = 0;
         bricks.forEach((brick) => {
             if(brick.destroyed){

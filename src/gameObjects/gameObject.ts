@@ -8,7 +8,7 @@ export abstract class GameObject {
     protected _width!: number;
     protected _height!: number;
 
-    constructor(position: Vector2) {
+    protected constructor(position: Vector2) {
         this.position = position;
         this.velocity = Vector2.zero();
         this.acceleration = Vector2.zero();
