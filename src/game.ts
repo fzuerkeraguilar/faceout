@@ -24,7 +24,7 @@ class Game {
     private livesText: HTMLParagraphElement;
     private scoreText: HTMLParagraphElement;
     private lastFrameTime: DOMHighResTimeStamp = 0;
-    private faceDetected: boolean = false;
+    private faceDetected: number = 0;
     private faceDetectorOptions = new faceapi.TinyFaceDetectorOptions({ inputSize: 320, scoreThreshold: 0.5 });
 
     private Ball: Ball;
@@ -97,7 +97,7 @@ class Game {
             return;
         }
         console.log("stopping");
-        this.faceDetected = false;
+        this.faceDetected = 0;
         this.lastFrameTime = 0;
         this.gameCTX.clearRect(0, 0, this.gameCanvas.width, this.gameCanvas.height);
         this.stopped = true;
@@ -120,11 +120,13 @@ class Game {
             const lMouth = new Vector2(mouth[6].x, mouth[6].y);
             const mouthCenter = rMouth.lerp(lMouth, 0.5);
             this.Paddle.position = this.translatePosition(mouthCenter);
-            this.faceDetected = true; 
+            if (this.faceDetected < 3) {
+                this.faceDetected++;
+            }
             return result;
         }).catch((err) => {console.log(err)})
 
-        if (this.faceDetected) {
+        if (this.faceDetected > 2) {
             this.Ball.update(deltaTime)
             this.score += this.Ball.collisonCheck(this.gameCanvas, this.Bricks, this.Paddle);
         }
