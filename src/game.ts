@@ -25,7 +25,7 @@ class Game {
     private scoreText: HTMLParagraphElement;
     private lastFrameTime: DOMHighResTimeStamp = 0;
     private faceDetected: boolean = false;
-    private faceDetector = new faceapi.TinyFaceDetectorOptions({ inputSize: 320, scoreThreshold: 0.5 });
+    private faceDetectorOptions = new faceapi.TinyFaceDetectorOptions({ inputSize: 320, scoreThreshold: 0.5 });
 
     private Ball: Ball;
     private Paddle: Paddle;
@@ -49,9 +49,27 @@ class Game {
         this.gameCTX = this.gameCanvas.getContext("2d")!;
         this.livesText = document.querySelector<HTMLParagraphElement>("#lives")!;
         this.scoreText = document.querySelector<HTMLParagraphElement>("#score")!;
+        this.livesText.innerText = "Lives: " + this.lives;
+        this.scoreText.innerText = "Score: " + this.score;
 
+        window.addEventListener("resize", this.resize.bind(this));
+        if(!navigator.mediaDevices?.getUserMedia) {
+            alert("getUserMedia not supported");
+        } else {
+            navigator.mediaDevices.getUserMedia(this.constraints).then((stream) => {
+                this.facecam = stream;
+                this.video = document.querySelector<HTMLVideoElement>("#video")!;
+                this.video.srcObject = this.facecam;
+                this.video.play();
+            }).catch((err) => {
+                let errorMessage = "Error getting video stream: " + err;
+                alert(errorMessage);
+                throw err;
+            });
+        }
+        this.stopped = true;
         this.Ball = new Ball(Vector2.zero(), 25);
-        this.Paddle = new Paddle(Vector2.zero(), 100, 40);
+        this.Paddle = new Paddle(Vector2.zero(), 120, 40);
         this.Bricks = this.fieldBuilder.getRectGameField(
             new Vector2(0, 0),
             this.gameCanvas.width - 20,
@@ -66,28 +84,12 @@ class Game {
         if (!this.stopped) {
             return;
         }
-        if(!navigator.mediaDevices?.getUserMedia) {
-            alert("getUserMedia not supported");
-            return;
-        }
-        console.log("starting")
-        window.addEventListener("resize", this.resize.bind(this));
+        console.log("starting");
         this.Ball.velocity = new Vector2(0.3, -0.3);
         this.Ball.position = new Vector2(this.gameCanvas.width/2, this.gameCanvas.height/2);
         this.Paddle.position = new Vector2(this.gameCanvas.width/2, this.gameCanvas.height - 50);
-        navigator.mediaDevices.getUserMedia(this.constraints).then((stream) => {
-            this.facecam = stream;
-            this.video = document.querySelector<HTMLVideoElement>("#video")!;
-            this.video.srcObject = this.facecam;
-            this.video.play();
-            this.stopped = false;
-            window.requestAnimationFrame(this.draw.bind(this));
-        }).catch((err) => {
-            let errorMessage = "Error getting video stream: " + err;
-            alert(errorMessage);
-            throw err;
-        });
-
+        this.stopped = false;
+        window.requestAnimationFrame(this.draw.bind(this));
     }
 
     stop() {
@@ -95,11 +97,6 @@ class Game {
             return;
         }
         console.log("stopping");
-        if (this.facecam) {
-            this.facecam.getTracks().forEach((track) => {
-                track.stop();
-            });
-        }
         this.faceDetected = false;
         this.lastFrameTime = 0;
         this.gameCTX.clearRect(0, 0, this.gameCanvas.width, this.gameCanvas.height);
@@ -110,26 +107,24 @@ class Game {
         if (this.stopped) {
             return;
         }
-
+        if (this.lastFrameTime === 0) {
+            this.lastFrameTime = timestamp;
+        }
         const deltaTime = timestamp - this.lastFrameTime;
-        faceapi.detectSingleFace(this.video, this.faceDetector).withFaceLandmarks(true).then((result) => {
+        faceapi.detectSingleFace(this.video, this.faceDetectorOptions).withFaceLandmarks(true).then((result) => {
             if (!result) {
                 return result;
             }
-            this.faceDetected = true
             const mouth = result.landmarks.getMouth();
-
             const rMouth = new Vector2(mouth[0].x, mouth[0].y);
             const lMouth = new Vector2(mouth[6].x, mouth[6].y);
             const mouthCenter = rMouth.lerp(lMouth, 0.5);
-            this.Paddle.position = this.translatePosition(mouthCenter);    
+            this.Paddle.position = this.translatePosition(mouthCenter);
+            this.faceDetected = true; 
             return result;
         }).catch((err) => {console.log(err)})
 
         if (this.faceDetected) {
-            if (this.lastFrameTime === 0) {
-                this.lastFrameTime = timestamp;
-            }
             this.Ball.update(deltaTime)
             this.score += this.Ball.collisonCheck(this.gameCanvas, this.Bricks, this.Paddle);
         }
