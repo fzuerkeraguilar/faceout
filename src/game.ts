@@ -115,6 +115,9 @@ class Game {
         if (this.stopped) {
             return;
         }
+        if (this.lives <= 0) {
+            window.alert("Game Over");
+        }
         console.log("stopping");
         this.faceDetected = 0;
         this.lastFrameTime = 0;
@@ -171,7 +174,6 @@ class Game {
             }
             if (this.lives <= 0) {
                 this.stop();
-                window.alert("Game Over");
                 return;
             }
             this.score += this.Ball.collisonCheck(this.gameCanvas, this.Bricks, this.Paddle);
