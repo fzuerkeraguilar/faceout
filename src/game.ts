@@ -37,6 +37,8 @@ class Game {
     private lives: number = 3;
     private fieldBuilder = new gameFieldBuilder([]);
     private Bricks: Brick[] = [];
+    private deathHeight: number = 0;
+    private countdownText: String = "";
 
     constructor() {
         this.startButton = document.querySelector<HTMLButtonElement>("#start")!;
@@ -56,6 +58,7 @@ class Game {
         this.scoreText = document.querySelector<HTMLParagraphElement>("#score")!;
         this.livesText.innerText = "Lives: " + this.lives;
         this.scoreText.innerText = "Score: " + this.score;
+        this.deathHeight = this.gameCanvas.height * 0.9;
 
         window.addEventListener("resize", this.resize.bind(this));
         if(!navigator.mediaDevices?.getUserMedia) {
@@ -160,6 +163,12 @@ class Game {
 
         if (this.faceDetected > 2 && !this.paused) {
             this.Ball.update(deltaTime)
+            if (this.Ball.position.y > this.deathHeight) {
+                this.lives--;
+                this.livesText.innerText = "Lives: " + this.lives;
+                this.Ball.position = new Vector2(this.gameCanvas.width/2, this.gameCanvas.height/2);
+                this.Ball.velocity = new Vector2(0.3, -0.3);
+            }
             this.score += this.Ball.collisonCheck(this.gameCanvas, this.Bricks, this.Paddle);
         }
 
@@ -173,6 +182,13 @@ class Game {
             }
             brick.draw(this.gameCTX);
         }
+
+        this.gameCTX.strokeStyle = "red";
+        this.gameCTX.beginPath();
+        this.gameCTX.moveTo(0, this.deathHeight);
+        this.gameCTX.lineTo(this.gameCanvas.width, this.deathHeight);
+        this.gameCTX.stroke();
+
         this.livesText.innerText = "Lives: " + this.lives;
         this.scoreText.innerText = "Score: " + this.score;
 
@@ -194,6 +210,7 @@ class Game {
                 this.Bricks[i * this.wallHeight + j].resize(brickWidth - padding, brickHeight - padding);
             }
         }
+        this.deathHeight = this.gameCanvas.height * 0.9;
     }
 
     translatePosition(position: Vector2): Vector2 {
