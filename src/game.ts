@@ -169,6 +169,11 @@ class Game {
                 this.Ball.position = new Vector2(this.gameCanvas.width/2, this.gameCanvas.height/2);
                 this.Ball.velocity = new Vector2(0.3, -0.3);
             }
+            if (this.lives <= 0) {
+                this.stop();
+                window.alert("Game Over");
+                return;
+            }
             this.score += this.Ball.collisonCheck(this.gameCanvas, this.Bricks, this.Paddle);
         }
 
