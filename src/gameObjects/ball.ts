@@ -55,7 +55,8 @@ export class Ball extends GameObject {
         }
     }
 
-    public collisonCheck(canvas: HTMLCanvasElement, bricks: Brick[], paddle: Paddle): void {
+    public collisonCheck(canvas: HTMLCanvasElement, bricks: Brick[], paddle: Paddle): number {
+        let destroyed = 0;
         bricks.forEach((brick) => {
             if(brick.destroyed){
                 return
@@ -63,6 +64,7 @@ export class Ball extends GameObject {
             if (this.collidesWith(brick)) {
                 this.collisionResponse(brick)
                 brick.destroy();
+                destroyed++;
             }
         });
         if (this.collidesWith(paddle)) {
@@ -80,6 +82,7 @@ export class Ball extends GameObject {
         if (this.position.y - this.radius < 0) {
             this.velocity.y = -this.velocity.y;
         }
+        return destroyed;
     }
 
     public collisionNormal(other: GameObject): Vector2 {

@@ -21,6 +21,8 @@ class Game {
 
     private startButton: HTMLButtonElement;
     private stopButton: HTMLButtonElement;
+    private livesText: HTMLParagraphElement;
+    private scoreText: HTMLParagraphElement;
     private lastFrameTime: DOMHighResTimeStamp = 0;
     private faceDetected: boolean = false;
     private faceDetector = new faceapi.TinyFaceDetectorOptions({ inputSize: 320, scoreThreshold: 0.5 });
@@ -45,6 +47,8 @@ class Game {
         this.gameCanvas.width = window.innerWidth;
         this.gameCanvas.height = window.innerHeight;
         this.gameCTX = this.gameCanvas.getContext("2d")!;
+        this.livesText = document.querySelector<HTMLParagraphElement>("#lives")!;
+        this.scoreText = document.querySelector<HTMLParagraphElement>("#score")!;
 
         this.Ball = new Ball(Vector2.zero(), 25);
         this.Paddle = new Paddle(Vector2.zero(), 100, 40);
@@ -121,8 +125,16 @@ class Game {
             this.Paddle.position = this.translatePosition(mouthCenter);    
             return result;
         }).catch((err) => {console.log(err)})
-        this.gameCTX.clearRect(0, 0, this.gameCanvas.width, this.gameCanvas.height);
 
+        if (this.faceDetected) {
+            if (this.lastFrameTime === 0) {
+                this.lastFrameTime = timestamp;
+            }
+            this.Ball.update(deltaTime)
+            this.score += this.Ball.collisonCheck(this.gameCanvas, this.Bricks, this.Paddle);
+        }
+
+        this.gameCTX.clearRect(0, 0, this.gameCanvas.width, this.gameCanvas.height);
         this.Paddle.draw(this.gameCTX);
         this.Paddle.draw(this.gameCTX);
         this.Ball.draw(this.gameCTX);
@@ -132,14 +144,9 @@ class Game {
             }
             brick.draw(this.gameCTX);
         }
+        this.livesText.innerText = "Lives: " + this.lives;
+        this.scoreText.innerText = "Score: " + this.score;
 
-        if (this.faceDetected) {
-            if (this.lastFrameTime === 0) {
-                this.lastFrameTime = timestamp;
-            }
-            this.Ball.update(deltaTime)
-            this.Ball.collisonCheck(this.gameCanvas, this.Bricks, this.Paddle);
-        }
         this.lastFrameTime = timestamp;
         window.requestAnimationFrame(this.draw.bind(this));
     }
