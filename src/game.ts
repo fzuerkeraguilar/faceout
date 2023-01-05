@@ -174,6 +174,11 @@ class Game {
                 return;
             }
             this.score += this.Ball.collisionCheck(this.gameCanvas, this.Bricks, this.Paddle);
+            if (this.score >= this.Bricks.length ) {
+                this.stop();
+                window.alert("You Win!");
+                return;
+            }
         }
 
         this.gameCTX.clearRect(0, 0, this.gameCanvas.width, this.gameCanvas.height);
