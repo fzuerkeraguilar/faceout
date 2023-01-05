@@ -7,8 +7,7 @@ import { gameFieldBuilder } from './gameFieldBuilder';
 
 const MODEL_URL = '/models'
 
-await faceapi.loadTinyFaceDetectorModel(MODEL_URL)
-await faceapi.loadFaceLandmarkTinyModel(MODEL_URL)
+
 
 
 class Game {
@@ -234,6 +233,10 @@ class Game {
         return new Vector2(x, y);
     }
 
+    async loadModels() {
+        await faceapi.loadTinyFaceDetectorModel(MODEL_URL)
+        await faceapi.loadFaceLandmarkTinyModel(MODEL_URL)
+    }
 }
 
 export {Game}
