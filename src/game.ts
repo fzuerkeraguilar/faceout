@@ -28,7 +28,7 @@ class Game {
     private faceDetectorOptions = {flipHorizontal: false};
     private model = faceLandmarksDetection.SupportedModels.MediaPipeFaceMesh;
     private detectorConfig = {
-    runtime: 'mediapipe',
+    runtime: 'mediapipe' as 'mediapipe',
     solutionPath: 'node_modules/@mediapipe/face_mesh',
     refineLandmarks: false,
     maxFaces: 1
@@ -105,7 +105,7 @@ class Game {
             return;
         }
         console.log("starting");
-        this.detector = await faceLandmarksDetection.createDetector(this.model, this.detectorConfig as faceLandmarksDetection.MediaPipeFaceMeshMediaPipeModelConfig);
+        this.detector = await faceLandmarksDetection.createDetector(this.model, this.detectorConfig);
         this.Ball.velocity = new Vector2(0.3, -0.3);
         this.Ball.position = new Vector2(this.gameCanvas.width/2, this.gameCanvas.height/2);
         this.Paddle.position = new Vector2(this.gameCanvas.width/2, this.gameCanvas.height - 50);
@@ -256,8 +256,7 @@ class Game {
         } else {
             const scalar = this.video.videoWidth / this.gameCanvas.width;
             const top_left_x = 0;
-            const top_left_y = this.video.videoHeight / 2 - this.gameCanvas.height * scalar / 2;
-                
+            const top_left_y = this.video.videoHeight / 2 - this.gameCanvas.height * scalar / 2;   
             const bottom_right_x = this.video.videoWidth;
             const bottom_right_y = this.video.videoHeight / 2 + this.gameCanvas.height * scalar / 2;
             const x = (position.x - top_left_x) / (bottom_right_x - top_left_x) * this.gameCanvas.width;
