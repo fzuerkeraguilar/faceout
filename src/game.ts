@@ -241,7 +241,9 @@ class Game {
     translatePosition(position: Vector2): Vector2 {
         console.log(this.windowRatio, this.webcamRatio)
         console.log(this.video.videoWidth, this.video.videoHeight)
-        //TDOO: fix this
+        if (this.flipHorizontal) {
+            position.x = this.video.videoWidth - position.x;
+        }
         if(this.windowRatio < this.webcamRatio) {
             const scalar = this.video.videoHeight / this.gameCanvas.height;
             const top_left_x = this.video.videoWidth / 2 - this.gameCanvas.width * scalar / 2;
