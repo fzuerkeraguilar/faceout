@@ -80,8 +80,7 @@ class Game {
                 this.facecam = stream;
                 this.video = document.querySelector<HTMLVideoElement>("#video")!;
                 this.video.srcObject = this.facecam;
-                this.video.play();
-                this.webcamRatio = this.video.videoWidth / this.video.videoHeight;
+                this.video.play();    
             }).catch((err) => {
                 let errorMessage = "Error getting video stream: " + err;
                 alert(errorMessage);
@@ -110,6 +109,7 @@ class Game {
         this.Ball.velocity = new Vector2(0.3, -0.3);
         this.Ball.position = new Vector2(this.gameCanvas.width/2, this.gameCanvas.height/2);
         this.Paddle.position = new Vector2(this.gameCanvas.width/2, this.gameCanvas.height - 50);
+        this.webcamRatio = this.video.videoWidth / this.video.videoHeight;
         this.stopped = false;
         window.requestAnimationFrame(this.draw.bind(this));
     }
@@ -235,9 +235,12 @@ class Game {
         }
         this.deathHeight = this.gameCanvas.height * 0.9;
         this.windowRatio = windowWidth / windowHeight;
+        this.webcamRatio = this.video.videoWidth / this.video.videoHeight;
     }
 
     translatePosition(position: Vector2): Vector2 {
+        console.log(this.windowRatio, this.webcamRatio)
+        console.log(this.video.videoWidth, this.video.videoHeight)
         //TDOO: fix this
         if(this.windowRatio < this.webcamRatio) {
             const scalar = this.video.videoHeight / this.gameCanvas.height;
