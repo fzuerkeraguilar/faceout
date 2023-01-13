@@ -16,7 +16,8 @@
     "vite-plugin-mkcert": "^1.10.1"
   },
   "dependencies": {
-    "face-api.js": "^0.22.2",
+    "@mediapipe/face_mesh": "^0.4.1633559619",
+    "@tensorflow-models/face-landmarks-detection": "^1.0.2",
     "jquery": "^3.6.1"
   }
 }

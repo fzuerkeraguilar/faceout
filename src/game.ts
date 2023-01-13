@@ -1,14 +1,13 @@
-import * as faceapi from 'face-api.js';
+import '@mediapipe/face_mesh';
+import '@tensorflow/tfjs-core';
+// Register WebGL backend.
+import '@tensorflow/tfjs-backend-webgl';
+import * as faceLandmarksDetection from '@tensorflow-models/face-landmarks-detection';
 import { Vector2 } from './gameObjects/vector2';
 import { Ball } from './gameObjects/ball';
 import { Paddle } from './gameObjects/paddle';
 import { Brick } from './gameObjects/brick';
 import { gameFieldBuilder } from './gameFieldBuilder';
-
-const MODEL_URL = '/models'
-
-
-
 
 class Game {
     private constraints = { audio: false, video: true, facingMode: "user" };
@@ -26,7 +25,15 @@ class Game {
     private scoreText: HTMLParagraphElement;
     private lastFrameTime: DOMHighResTimeStamp = 0;
     private faceDetected: number = 0;
-    private faceDetectorOptions = new faceapi.TinyFaceDetectorOptions({ inputSize: 320, scoreThreshold: 0.5 });
+    private faceDetectorOptions = {flipHorizontal: false};
+    private model = faceLandmarksDetection.SupportedModels.MediaPipeFaceMesh;
+    private detectorConfig = {
+    runtime: 'mediapipe',
+    solutionPath: 'node_modules/@mediapipe/face_mesh',
+    refineLandmarks: false,
+    maxFaces: 1
+    };
+    private detector!: faceLandmarksDetection.FaceLandmarksDetector;
 
     private Ball: Ball;
     private Paddle: Paddle;
@@ -39,6 +46,9 @@ class Game {
     private deathHeight: number = 0;
     private windowRatio: number = 0;
     private webcamRatio: number = 0;
+    //TODO: make this a setting
+    private flipHorizontal: boolean = false;
+
 
     constructor() {
         this.startButton = document.querySelector<HTMLButtonElement>("#start")!;
@@ -89,11 +99,12 @@ class Game {
         );
     }
 
-    start() {
+    async start() {
         if (!this.stopped) {
             return;
         }
         console.log("starting");
+        this.detector = await faceLandmarksDetection.createDetector(this.model, this.detectorConfig as faceLandmarksDetection.MediaPipeFaceMeshMediaPipeModelConfig);
         this.Ball.velocity = new Vector2(0.3, -0.3);
         this.Ball.position = new Vector2(this.gameCanvas.width/2, this.gameCanvas.height/2);
         this.Paddle.position = new Vector2(this.gameCanvas.width/2, this.gameCanvas.height - 50);
@@ -147,19 +158,18 @@ class Game {
             this.lastFrameTime = timestamp;
         }
         const deltaTime = timestamp - this.lastFrameTime;
-        faceapi.detectSingleFace(this.video, this.faceDetectorOptions).withFaceLandmarks(true).then((result) => {
-            if (!result) {
-                return result;
+        this.detector.estimateFaces(this.video, this.faceDetectorOptions).then((results) => {
+            if (results) {
+                const result = results[0];
+                const keypoints = result.keypoints;
+                const rMouth = new Vector2(keypoints[76].x, keypoints[76].y);
+                const lMouth = new Vector2(keypoints[306].x, keypoints[306].y);
+                const mouthCenter = rMouth.lerp(lMouth, 0.5);
+                this.Paddle.position = this.translatePosition(mouthCenter);
+                if (this.faceDetected < 3) {
+                    this.faceDetected++;
+                }
             }
-            const mouth = result.landmarks.getMouth();
-            const rMouth = new Vector2(mouth[0].x, mouth[0].y);
-            const lMouth = new Vector2(mouth[6].x, mouth[6].y);
-            const mouthCenter = rMouth.lerp(lMouth, 0.5);
-            this.Paddle.position = this.translatePosition(mouthCenter);
-            if (this.faceDetected < 3) {
-                this.faceDetected++;
-            }
-            return result;
         }).catch((err) => {console.log(err)})
 
         if (this.faceDetected > 2 && !this.paused) {
@@ -226,6 +236,7 @@ class Game {
     }
 
     translatePosition(position: Vector2): Vector2 {
+        //TDOO: fix this
         if(this.windowRatio < this.webcamRatio ) {
             const scalar = this.video.videoHeight / this.gameCanvas.height;
             const top_left_x = this.video.videoWidth / 2 - this.gameCanvas.width * scalar / 2;
@@ -246,11 +257,6 @@ class Game {
             const y = (position.y - top_left_y) / (bottom_right_y - top_left_y) * this.gameCanvas.height;
             return new Vector2(x, y);
         }
-    }
-
-    async loadModels() {
-        await faceapi.loadTinyFaceDetectorModel(MODEL_URL)
-        await faceapi.loadFaceLandmarkTinyModel(MODEL_URL)
     }
 }
 
