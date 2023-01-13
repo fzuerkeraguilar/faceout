@@ -60,6 +60,8 @@ class Game {
         this.stopButton = document.querySelector<HTMLButtonElement>("#stop")!;
         this.stopButton.onclick = this.stop.bind(this);
 
+        document.querySelector<HTMLButtonElement>("#flip")!.onclick = this.flipVideo.bind(this);
+
         this.gameCanvas = document.querySelector<HTMLCanvasElement>("#gameBoard")!;
         this.gameCanvas.width = window.innerWidth;
         this.gameCanvas.height = window.innerHeight;
@@ -237,7 +239,7 @@ class Game {
 
     translatePosition(position: Vector2): Vector2 {
         //TDOO: fix this
-        if(this.windowRatio < this.webcamRatio ) {
+        if(this.windowRatio < this.webcamRatio) {
             const scalar = this.video.videoHeight / this.gameCanvas.height;
             const top_left_x = this.video.videoWidth / 2 - this.gameCanvas.width * scalar / 2;
             const top_left_y = 0;
@@ -257,6 +259,12 @@ class Game {
             const y = (position.y - top_left_y) / (bottom_right_y - top_left_y) * this.gameCanvas.height;
             return new Vector2(x, y);
         }
+    }
+
+    flipVideo() {
+        this.flipHorizontal = !this.flipHorizontal;
+        this.video.style.transform = this.flipHorizontal ? "scaleX(-1) translate(50%,-50%)" : "";
+
     }
 }
 
