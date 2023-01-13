@@ -1,7 +1,5 @@
-import { Brick } from "./brick";
 import { GameObject } from "./gameObject";
-import { Paddle } from "./paddle";
-import { Vector2 } from "./vector2";
+import { Vector2 } from "../utils/vector2";
 
 export class Ball extends GameObject {
     
@@ -22,97 +20,57 @@ export class Ball extends GameObject {
     }
 
     public draw(context: CanvasRenderingContext2D): void {
-        const canvasWidth = context.canvas.width;
-        const canvasHeight = context.canvas.height;
-        if (this.position.x + this.radius > canvasWidth) {
-            this.position.x = canvasWidth - this.radius;
-        }
-        if (this.position.x - this.radius < 0) {
-            this.position.x = this.radius;
-        }
-        if (this.position.y + this.radius > canvasHeight) {
-            this.position.y = canvasHeight - this.radius;
-        }
-        if (this.position.y - this.radius < 0) {
-            this.position.y = this.radius;
-        }
-
         context.fillStyle = "white";
+        context.strokeStyle = "black";
         context.beginPath();
         context.arc(this.position.x, this.position.y, this.radius, 0, 2 * Math.PI);
         context.fill();
+        context.arc(this.position.x, this.position.y, this.radius, 0, 2 * Math.PI);
+        context.stroke();
     }
 
-    public collidesWith(other: GameObject): boolean {
-        if (other instanceof Ball) {
-            const distance = this.position.distanceTo(other.position);
-            return distance < this.radius + other.radius;
-        } else {
-            return this.position.x + this.radius > other.position.x - other.width / 2 &&
-                this.position.x - this.radius < other.position.x + other.width / 2 &&
-                this.position.y + this.radius > other.position.y - other.height / 2 &&
-                this.position.y - this.radius < other.position.y + other.height / 2;
-        }
+    public collidesWithBall(ball: Ball): boolean {
+        const distance = this.position.distanceTo(ball.position);
+        return distance < this.radius + ball.radius;
     }
 
-    public collisionCheck(canvas: HTMLCanvasElement, bricks: Brick[], paddle: Paddle): number {
-        let destroyed = 0;
-        bricks.forEach((brick) => {
-            if(brick.destroyed){
-                return
-            }
-            if (this.collidesWith(brick)) {
-                this.collisionResponse(brick)
-                brick.destroy();
-                destroyed++;
-            }
-        });
-        if (this.collidesWith(paddle)) {
-            this.collisionResponse(paddle);
-        }
-        if (this.position.y + this.radius > canvas.height) {
-            this.velocity.y = -this.velocity.y;
-        }
-        if (this.position.x + this.radius > canvas.width) {
-            this.velocity.x = -this.velocity.x;
-        }
-        if (this.position.x - this.radius < 0) {
-            this.velocity.x = -this.velocity.x;
-        }
-        if (this.position.y - this.radius < 0) {
-            this.velocity.y = -this.velocity.y;
-        }
-        return destroyed;
-    }
-
-    public collisionNormal(other: GameObject): Vector2 {
-        if (other instanceof Ball) {
-            const normal = this.position.subtract(other.position);
-            return normal.normalize();
-        }
-        const normal = new Vector2(0, 0);
-        if (this.position.x < other.position.x - other.width / 2) {
-            normal.x = -1;
-        }
-        else if (this.position.x > other.position.x + other.width / 2) {
-            normal.x = 1;
-        }
-        if (this.position.y < other.position.y - other.height / 2) {
-            normal.y = -1;
-        }
-        else if (this.position.y > other.position.y + other.height / 2) {
-            normal.y = 1;
-        }
+    public collisionNormal(other: Ball): Vector2 {
+        const normal = this.position.subtract(other.position);
         return normal.normalize();
     }
 
-    public collisionResponse(other: GameObject): void {
-        const normal = this.collisionNormal(other);
-        this.velocity = Vector2.reflect(this.velocity, normal);
+    public collision(normal: Vector2): void {
+        this.velocity = this.velocity.reflect(normal);
     }
 
-    public update(deltaTime: number): void {
+    /**
+     * Update the ball's position and velocity. If the ball goes off the bottom of the screen, return true.
+     * The ball bounces off the sides of the screen.
+     * @param deltaTime Time since the last frame
+     * @param canvasWidth The width of the canvas
+     * @param canvasHeight The height of the canvas
+     * @param deathHeight How far  the ball can go down the canvas before it is considered dead
+     * @returns 
+     */
+    public update(deltaTime: number, canvasWidth:number, canvasHeight:number, deathHeight:number): boolean {
+        if (this.position.x + this.radius > canvasWidth) {
+            this.position.x = canvasWidth - this.radius;
+            this.velocity.x = -this.velocity.x;
+        }
+        if (this.position.x - this.radius < 0) {
+            this.position.x = this.radius;
+            this.velocity.x = -this.velocity.x;
+        }
+        if (this.position.y + this.radius > canvasHeight) {
+            this.position.y = canvasHeight - this.radius;
+            this.velocity.y = -this.velocity.y;
+        }
+        if (this.position.y - this.radius < 0) {
+            this.position.y = this.radius;
+            this.velocity.y = -this.velocity.y;
+        }
         this.position = this.position.add(this.velocity.scale(deltaTime));
+        return this.position.y > deathHeight;
     }
     
 }
