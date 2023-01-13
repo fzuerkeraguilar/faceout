@@ -37,6 +37,8 @@ class Game {
     private fieldBuilder = new gameFieldBuilder([]);
     private Bricks: Brick[] = [];
     private deathHeight: number = 0;
+    private windowRatio: number = 0;
+    private webcamRatio: number = 0;
 
     constructor() {
         this.startButton = document.querySelector<HTMLButtonElement>("#start")!;
@@ -57,7 +59,7 @@ class Game {
         this.livesText.innerText = "Lives: " + this.lives;
         this.scoreText.innerText = "Score: " + this.score;
         this.deathHeight = this.gameCanvas.height * 0.9;
-
+        this.windowRatio = window.innerWidth / window.innerHeight;
         window.addEventListener("resize", this.resize.bind(this));
         if(!navigator.mediaDevices?.getUserMedia) {
             alert("getUserMedia not supported");
@@ -67,6 +69,7 @@ class Game {
                 this.video = document.querySelector<HTMLVideoElement>("#video")!;
                 this.video.srcObject = this.facecam;
                 this.video.play();
+                this.webcamRatio = this.video.videoWidth / this.video.videoHeight;
             }).catch((err) => {
                 let errorMessage = "Error getting video stream: " + err;
                 alert(errorMessage);
@@ -219,18 +222,30 @@ class Game {
             }
         }
         this.deathHeight = this.gameCanvas.height * 0.9;
+        this.windowRatio = windowWidth / windowHeight;
     }
 
     translatePosition(position: Vector2): Vector2 {
-        //TODO: make this work for when window is wider than video
-        const scalar = this.video.videoHeight / this.gameCanvas.height;
-        const top_left_x = this.video.videoWidth / 2 - this.gameCanvas.width * scalar / 2;
-        const top_left_y = 0;
-        const bottom_right_x = this.video.videoWidth / 2 + this.gameCanvas.width * scalar / 2;
-        const bottom_right_y = this.video.videoHeight;
-        const x = (position.x - top_left_x) / (bottom_right_x - top_left_x) * this.gameCanvas.width;
-        const y = (position.y - top_left_y) / (bottom_right_y - top_left_y) * this.gameCanvas.height;
-        return new Vector2(x, y);
+        if(this.windowRatio < this.webcamRatio ) {
+            const scalar = this.video.videoHeight / this.gameCanvas.height;
+            const top_left_x = this.video.videoWidth / 2 - this.gameCanvas.width * scalar / 2;
+            const top_left_y = 0;
+            const bottom_right_x = this.video.videoWidth / 2 + this.gameCanvas.width * scalar / 2;
+            const bottom_right_y = this.video.videoHeight;
+            const x = (position.x - top_left_x) / (bottom_right_x - top_left_x) * this.gameCanvas.width;
+            const y = (position.y - top_left_y) / (bottom_right_y - top_left_y) * this.gameCanvas.height;
+            return new Vector2(x, y);
+        } else {
+            const scalar = this.video.videoWidth / this.gameCanvas.width;
+            const top_left_x = 0;
+            const top_left_y = this.video.videoHeight / 2 - this.gameCanvas.height * scalar / 2;
+                
+            const bottom_right_x = this.video.videoWidth;
+            const bottom_right_y = this.video.videoHeight / 2 + this.gameCanvas.height * scalar / 2;
+            const x = (position.x - top_left_x) / (bottom_right_x - top_left_x) * this.gameCanvas.width;
+            const y = (position.y - top_left_y) / (bottom_right_y - top_left_y) * this.gameCanvas.height;
+            return new Vector2(x, y);
+        }
     }
 
     async loadModels() {
