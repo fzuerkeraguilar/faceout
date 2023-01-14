@@ -3,7 +3,7 @@ import { Vector2 } from "../utils/vector2";
 
 export class Ball extends GameObject {
     
-    private _radius: number;
+    private readonly _radius: number;
 
     constructor(position: Vector2, radius: number) {
         super(position);

@@ -14,7 +14,7 @@ export class Game {
     private paused: boolean = false;
     private video!: HTMLVideoElement;
     private gameCanvas: HTMLCanvasElement
-    private gameCTX: CanvasRenderingContext2D;
+    private readonly gameCTX: CanvasRenderingContext2D;
     private livesText: HTMLParagraphElement;
     private scoreText: HTMLParagraphElement;
     private lastFrameTime: DOMHighResTimeStamp = 0;
@@ -39,6 +39,7 @@ export class Game {
     private lives: number = 3;
     private gameBoard: GameBoard;
     private deathHeight: number = 0;
+    private countdown: boolean = false;
 
     constructor() {
         document.querySelector<HTMLButtonElement>("#start")!.onclick = this.start.bind(this);
@@ -86,12 +87,13 @@ export class Game {
             await new Promise(r => setTimeout(r, 100));
         }
         console.log("starting");
-        this.Ball.velocity = Vector2.left().scale(0.4);
+        this.Ball.velocity = Vector2.left().scale(-0.4);
         this.Ball.position = new Vector2(this.gameCanvas.width/2, this.gameCanvas.height/2);
         this.webcamRatio = this.video.videoWidth / this.video.videoHeight;
 
         this.stopped = false;
         this.paused = false;
+        this.countdown = true;
         window.requestAnimationFrame(this.draw.bind(this));
     }
 
@@ -125,7 +127,7 @@ export class Game {
         this.gameBoard.reset();
     }
 
-    draw(timestamp: DOMHighResTimeStamp) {
+    async draw(timestamp: DOMHighResTimeStamp) {
         if (this.stopped) {
             return;
         }
@@ -143,6 +145,12 @@ export class Game {
                 this.Paddle.position = this.translatePosition(mouthCenter).subtract(new Vector2(this.Paddle.width/2, this.Paddle.height/2));
             }
         }).catch((err) => {console.log(err)})
+
+        if(this.countdown) {
+            await this.drawCountdown(3);
+            window.requestAnimationFrame(this.draw.bind(this));
+            return;
+        }
 
         if (!this.paused) {
             if (this.Ball.update(deltaTime, this.gameCanvas.width, this.gameCanvas.height, this.deathHeight)) {
@@ -184,6 +192,18 @@ export class Game {
 
         this.lastFrameTime = timestamp;
         window.requestAnimationFrame(this.draw.bind(this));
+    }
+
+    async drawCountdown(seconds: number) {
+        for (let i = 0; i < seconds; i++) {
+            this.gameCTX.clearRect(0, 0, this.gameCanvas.width, this.gameCanvas.height);
+            this.gameCTX.font = "100px Arial";
+            this.gameCTX.fillStyle = "red";
+            this.gameCTX.textAlign = "center";
+            this.gameCTX.fillText((seconds - i).toString(), this.gameCanvas.width / 2, this.gameCanvas.height / 2);
+            await new Promise(r => setTimeout(r, 1000));
+        }
+        this.countdown = false;
     }
 
     resize() {

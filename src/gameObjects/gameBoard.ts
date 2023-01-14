@@ -4,7 +4,7 @@ import { Vector2 } from "../utils/vector2";
 
 export class GameBoard {
 
-    private _board: Brick[][];
+    private readonly _board: Brick[][];
     private _padding: number;
 
     constructor(size_x: number, size_y: number, wallWidth: number, wallHeight: number, side_padding:number = 10, top_padding:number = 10, padding: number = 10) {

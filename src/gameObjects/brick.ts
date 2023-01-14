@@ -3,7 +3,7 @@ import { Vector2 } from "../utils/vector2";
 
 export class Brick extends GameObject {
 
-    private color: string;
+    private readonly color: string;
     private _destroyed: boolean;
 
     /**
