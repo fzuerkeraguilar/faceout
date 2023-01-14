@@ -1,5 +1,5 @@
 # faceout
-A faceout clone, that uses your webcam to controll the game.
+A breakout clone, that uses your webcam to controll the game.
 
 # Usage
 1. Clone the repository
