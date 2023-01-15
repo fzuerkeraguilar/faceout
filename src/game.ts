@@ -207,9 +207,13 @@ export class Game {
     }
 
     resize() {
+        const oldWidth = this.gameCanvas.width;
+        const oldHeight = this.gameCanvas.height;
         this.gameCanvas.width = window.innerWidth;
         this.gameCanvas.height =  window.innerHeight
         this.gameBoard.resize(this.gameCanvas.width, this.gameCanvas.height/3);
+        this.Ball.position = new Vector2(this.Ball.position.x * this.gameCanvas.width / oldWidth,
+            this.Ball.position.y * this.gameCanvas.height / oldHeight);
         this.deathHeight = this.gameCanvas.height * 0.9;
         this.windowRatio = window.innerWidth /  window.innerHeight;
     }
